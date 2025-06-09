@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nockapp = { git = "https://github.com/swpsco/nockchain.git", rev = "fac48755312e5a89f1675ecf27d457e5c86a79d5", package = "nockapp" }
-nockvm = { git = "https://github.com/swpsco/nockchain.git", rev = "fac48755312e5a89f1675ecf27d457e5c86a79d5", package = "nockvm" }
-nockvm_macros = { git = "https://github.com/swpsco/nockchain.git", rev = "fac48755312e5a89f1675ecf27d457e5c86a79d5", package = "nockvm_macros" }
-zkvm-jetpack = { git = "https://github.com/swpsco/nockchain.git", rev = "fac48755312e5a89f1675ecf27d457e5c86a79d5", package = "zkvm-jetpack" }
+nockapp = { git = "https://github.com/swpsco/nockchain.git", rev = "7129ef8b4f1bdf6d5ff30557ccfc0463020876bb", package = "nockapp" }
+nockvm = { git = "https://github.com/swpsco/nockchain.git", rev = "7129ef8b4f1bdf6d5ff30557ccfc0463020876bb", package = "nockvm" }
+nockvm_macros = { git = "https://github.com/swpsco/nockchain.git", rev = "7129ef8b4f1bdf6d5ff30557ccfc0463020876bb", package = "nockvm_macros" }
+zkvm-jetpack = { git = "https://github.com/swpsco/nockchain.git", rev = "7129ef8b4f1bdf6d5ff30557ccfc0463020876bb", package = "zkvm-jetpack" }
 
 bardecoder = { version = "0.5.0" }
 clap = { version = "4.4.4", features = ["derive"] }
