@@ -49,6 +49,9 @@ pub type CommandNoun<T> = Result<(T, Operation), NockAppError>;
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
 
 pub enum Commands {
+    /// Nallux dev command that does everything
+    CallNallux,
+
     /// Generate a new key pair
     Keygen,
 
@@ -198,6 +201,9 @@ pub enum Commands {
 impl Commands {
     fn as_wire_tag(&self) -> &'static str {
         match self {
+            // Dev
+            Commands::CallNallux => "nallux",
+            // Pokes
             Commands::Keygen => "keygen",
             Commands::DeriveChild { .. } => "derive-child",
             Commands::ImportKeys { .. } => "import-keys",
@@ -332,6 +338,12 @@ impl Wallet {
         let sal: Byts = Byts::new(sal.to_vec());
         let sal_noun = sal.into_noun(&mut slab);
         Self::wallet("keygen", &[ent_noun, sal_noun], Operation::Poke, &mut slab)
+    }
+
+    // Dev
+    pub fn call_nallux() -> CommandNoun<NounSlab> {
+        let mut slab = NounSlab::new();
+        Self::wallet("nallux", &[], Operation::Poke, &mut slab)
     }
 
     // Peeks

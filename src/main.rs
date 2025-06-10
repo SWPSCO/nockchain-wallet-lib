@@ -62,6 +62,7 @@ async fn main() -> Result<(), NockAppError> {
     let requires_sync = match &cli.command {
         // Commands that DON'T need sync
         Commands::Keygen
+        | Commands::CallNallux
         | Commands::DeriveChild { .. }
         | Commands::ImportKeys { .. }
         | Commands::ExportKeys
@@ -98,6 +99,8 @@ async fn main() -> Result<(), NockAppError> {
 
     // Generate the command noun and operation
     let poke = match &cli.command {
+        // Dev
+        Commands::CallNallux => Wallet::call_nallux(),
         // Peek Commands
         Commands::PeekBalance => return do_peek(Wallet::peek_balance()?.0, wallet_instance.app).await,
         Commands::PeekSeedphrase => return do_peek(Wallet::peek_seedphrase()?.0, wallet_instance.app).await,
