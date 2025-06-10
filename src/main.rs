@@ -62,7 +62,7 @@ async fn main() -> Result<(), NockAppError> {
     let requires_sync = match &cli.command {
         // Commands that DON'T need sync
         Commands::Keygen
-        | Commands::CallNallux
+        | Commands::UpdateState
         | Commands::DeriveChild { .. }
         | Commands::ImportKeys { .. }
         | Commands::ExportKeys
@@ -99,8 +99,6 @@ async fn main() -> Result<(), NockAppError> {
 
     // Generate the command noun and operation
     let poke = match &cli.command {
-        // Dev
-        Commands::CallNallux => Wallet::call_nallux(),
         // Peek Commands
         Commands::PeekBalance => return do_peek(Wallet::peek_balance()?.0, wallet_instance.app).await,
         Commands::PeekSeedphrase => return do_peek(Wallet::peek_seedphrase()?.0, wallet_instance.app).await,
@@ -108,6 +106,7 @@ async fn main() -> Result<(), NockAppError> {
         Commands::PeekState => return do_peek(Wallet::peek_state()?.0, wallet_instance.app).await,
         Commands::PeekReceiveAddress => return do_peek(Wallet::peek_receive_address()?.0, wallet_instance.app).await,
         Commands::PeekPubkeys => return do_peek(Wallet::peek_pubkeys()?.0, wallet_instance.app).await,
+        Commands::UpdateState => Wallet::update_state(),
         Commands::Keygen => {
             let mut entropy = [0u8; 32];
             let mut salt = [0u8; 16];

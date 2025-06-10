@@ -49,8 +49,8 @@ pub type CommandNoun<T> = Result<(T, Operation), NockAppError>;
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
 
 pub enum Commands {
-    /// Nallux dev command that does everything
-    CallNallux,
+    /// Update the wallet state
+    UpdateState,
 
     /// Generate a new key pair
     Keygen,
@@ -201,9 +201,8 @@ pub enum Commands {
 impl Commands {
     fn as_wire_tag(&self) -> &'static str {
         match self {
-            // Dev
-            Commands::CallNallux => "nallux",
             // Pokes
+            Commands::UpdateState => "update-state",
             Commands::Keygen => "keygen",
             Commands::DeriveChild { .. } => "derive-child",
             Commands::ImportKeys { .. } => "import-keys",
@@ -341,9 +340,9 @@ impl Wallet {
     }
 
     // Dev
-    pub fn call_nallux() -> CommandNoun<NounSlab> {
+    pub fn update_state() -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
-        Self::wallet("nallux", &[], Operation::Poke, &mut slab)
+        Self::wallet("update-state", &[], Operation::Poke, &mut slab)
     }
 
     // Peeks
