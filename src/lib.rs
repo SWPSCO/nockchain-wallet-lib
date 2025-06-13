@@ -352,7 +352,7 @@ impl Wallet {
     }
     pub fn peek_seedphrase() -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
-        Self::wallet("seed-phrase", &[], Operation::Peek, &mut slab)
+        Self::wallet("seedphrase", &[], Operation::Peek, &mut slab)
     }
     pub fn peek_master_pubkey() -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
