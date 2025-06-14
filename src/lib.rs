@@ -147,6 +147,25 @@ pub enum Commands {
         fee: u64,
     },
 
+    /// Perform a simple spend operation in aeroe
+    AeroeSpend {
+        /// Names of notes to spend (comma-separated)
+        #[arg(long)]
+        names: String,
+        /// Recipient addresses (comma-separated)
+        #[arg(long)]
+        recipients: String,
+        /// Amounts to send (comma-separated)
+        #[arg(long)]
+        gifts: String,
+        /// Transaction fee
+        #[arg(long)]
+        fee: u64,
+        /// Location to write the draft file
+        #[arg(long)]
+        path: String,
+    },
+
     /// Create a transaction from a draft file
     MakeTx {
         /// Draft file to create transaction from
@@ -217,6 +236,7 @@ impl Commands {
             Commands::ListNotes => "list-notes",
             Commands::ListNotesByPubkey { .. } => "list-notes-by-pubkey",
             Commands::SimpleSpend { .. } => "simple-spend",
+            Commands::AeroeSpend { .. } => "aeroe-spend",
             Commands::MakeTx { .. } => "make-tx",
             Commands::UpdateBalance => "update-balance",
             Commands::ExportMasterPubkey => "export-master-pubkey",
@@ -689,6 +709,126 @@ impl Wallet {
         Self::wallet(
             "simple-spend",
             &[names_noun, recipients_noun, gifts_noun, fee_noun],
+            Operation::Poke,
+            &mut slab,
+        )
+    }
+
+    pub fn aeroe_spend(
+        names: String,
+        recipients: String,
+        gifts: String,
+        fee: u64,
+        path: String,
+    ) -> CommandNoun<NounSlab> {
+        let mut slab = NounSlab::new();
+
+        // Split the comma-separated inputs
+        // Each name should be in format "[first last]"
+        let names_vec: Vec<(String, String)> = names
+            .split(',')
+            .filter_map(|pair| {
+                let pair = pair.trim();
+                if pair.starts_with('[') && pair.ends_with(']') {
+                    let inner = &pair[1..pair.len() - 1];
+                    let parts: Vec<&str> = inner.split_whitespace().collect();
+                    if parts.len() == 2 {
+                        Some((parts[0].to_string(), parts[1].to_string()))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        // Convert recipients to list of [number pubkeys] pairs
+        let recipients_vec: Vec<(u64, Vec<String>)> = if recipients.contains('[') {
+            // Parse complex format: "[1 pk1],[2 pk2,pk3,pk4]"
+            recipients
+                .split(',')
+                .filter_map(|pair| {
+                    let pair = pair.trim();
+                    if pair.starts_with('[') && pair.ends_with(']') {
+                        let inner = &pair[1..pair.len() - 1];
+                        let mut parts = inner.splitn(2, ' ');
+
+                        // Parse the number
+                        let number = parts.next()?.parse().ok()?;
+
+                        // Parse the pubkeys
+                        let pubkeys = parts
+                            .next()?
+                            .split(',')
+                            .map(|s| s.trim().to_string())
+                            .collect();
+
+                        Some((number, pubkeys))
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        } else {
+            // Parse simple format: "pk1,pk2,pk3"
+            recipients
+                .split(',')
+                .map(|addr| (1, vec![addr.trim().to_string()]))
+                .collect()
+        };
+
+        let gifts_vec: Vec<u64> = gifts.split(',').filter_map(|s| s.parse().ok()).collect();
+
+        // Verify equal lengths
+        if names_vec.len() != recipients_vec.len() || names_vec.len() != gifts_vec.len() {
+            return Err(CrownError::Unknown(
+                "Invalid input - names, recipients, and gifts must have the same length"
+                    .to_string(),
+            )
+            .into());
+        }
+
+        // Convert names to list of pairs
+        let names_noun = names_vec
+            .into_iter()
+            .rev()
+            .fold(D(0), |acc, (first, last)| {
+                // Create a tuple [first_name last_name] for each name pair
+                let first_noun = make_tas(&mut slab, &first).as_noun();
+                let last_noun = make_tas(&mut slab, &last).as_noun();
+                let name_pair = T(&mut slab, &[first_noun, last_noun]);
+                Cell::new(&mut slab, name_pair, acc).as_noun()
+            });
+
+        // Convert recipients to list
+        let recipients_noun = recipients_vec
+            .into_iter()
+            .rev()
+            .fold(D(0), |acc, (num, pubkeys)| {
+                // Create the inner list of pubkeys
+                let pubkeys_noun = pubkeys.into_iter().rev().fold(D(0), |acc, pubkey| {
+                    let pubkey_noun = make_tas(&mut slab, &pubkey).as_noun();
+                    Cell::new(&mut slab, pubkey_noun, acc).as_noun()
+                });
+
+                // Create the pair of [number pubkeys_list]
+                let pair = T(&mut slab, &[D(num), pubkeys_noun]);
+                Cell::new(&mut slab, pair, acc).as_noun()
+            });
+
+        // Convert gifts to list
+        let gifts_noun = gifts_vec.into_iter().rev().fold(D(0), |acc, amount| {
+            Cell::new(&mut slab, D(amount), acc).as_noun()
+        });
+
+        let fee_noun = D(fee);
+
+        let path_noun = make_tas(&mut slab, &path.as_str()).as_noun();
+
+        Self::wallet(
+            "aeroe-spend",
+            &[names_noun, recipients_noun, gifts_noun, fee_noun, path_noun],
             Operation::Poke,
             &mut slab,
         )

@@ -77,6 +77,7 @@ async fn main() -> Result<(), NockAppError> {
         | Commands::ShowMasterPubkey
         | Commands::ShowMasterPrivkey
         | Commands::SimpleSpend { .. }
+        | Commands::AeroeSpend { .. }
         // Lib specific Peek commands
         | Commands::PeekBalance
         | Commands::PeekSeedphrase
@@ -156,6 +157,13 @@ async fn main() -> Result<(), NockAppError> {
             gifts,
             fee,
         } => Wallet::simple_spend(names.clone(), recipients.clone(), gifts.clone(), *fee),
+        Commands::AeroeSpend {
+            names,
+            recipients,
+            gifts,
+            fee,
+            path,
+        } => Wallet::aeroe_spend(names.clone(), recipients.clone(), gifts.clone(), *fee, path.clone()),
         Commands::MakeTx { draft } => Wallet::make_tx(draft),
         Commands::UpdateBalance => Wallet::update_balance(),
         Commands::ExportMasterPubkey => Wallet::export_master_pubkey(),
