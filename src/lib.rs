@@ -91,6 +91,21 @@ pub enum Commands {
         index: Option<u64>,
     },
 
+    /// Signs a transaction in aeroe
+    SignAeroeTx {
+        /// Path to input bundle file
+        #[arg(short, long)]
+        draft: String,
+
+        /// Optional key index to use for signing (0-255)
+        #[arg(short, long, value_parser = clap::value_parser!(u64).range(0..=255))]
+        index: Option<u64>,
+
+        /// Location to write the signed transaction file
+        #[arg(short, long)]
+        file_path: String,
+    },
+
     /// Generate a master private key from a seed phrase
     GenMasterPrivkey {
         /// Seed phrase to generate master private key
@@ -230,6 +245,7 @@ impl Commands {
             Commands::ImportKeys { .. } => "import-keys",
             Commands::ExportKeys => "export-keys",
             Commands::SignTx { .. } => "sign-tx",
+            Commands::SignAeroeTx { .. } => "sign-aeroe-tx",
             Commands::GenMasterPrivkey { .. } => "gen-master-privkey",
             Commands::GenMasterPubkey { .. } => "gen-master-pubkey",
             Commands::Scan { .. } => "scan",
@@ -469,6 +485,52 @@ impl Wallet {
             &mut slab,
         )
     }
+
+    /// Signs a transaction in aeroe.
+    ///
+    /// # Arguments
+    ///
+    /// * `draft_path` - Path to the draft file
+    /// * `index` - Optional index of the key to use for signing
+    pub fn sign_aeroe_tx(draft_path: &str, index: Option<u64>, file_path: String) -> CommandNoun<NounSlab> {
+        let mut slab = NounSlab::new();
+
+        // Validate index is within range (though clap should prevent this)
+        if let Some(idx) = index {
+            if idx > 255 {
+                return Err(CrownError::Unknown("Key index must not exceed 255".into()).into());
+            }
+        }
+
+        // Read and decode the input bundle
+        let draft_data = fs::read(draft_path)
+            .map_err(|e| CrownError::Unknown(format!("Failed to read draft: {}", e)))?;
+
+        // Convert the bundle data into a noun using cue
+        let draft_noun = slab
+            .cue_into(draft_data.as_bytes()?)
+            .map_err(|e| CrownError::Unknown(format!("Failed to decode draft: {}", e)))?;
+
+        let index_noun = match index {
+            Some(i) => D(i),
+            None => D(0),
+        };
+
+        // Generate random entropy
+        let mut entropy_bytes = [0u8; 32];
+        getrandom(&mut entropy_bytes).map_err(|e| CrownError::Unknown(e.to_string()))?;
+        let entropy = from_bytes(&mut slab, &entropy_bytes).as_noun();
+
+        let file_path_noun = make_tas(&mut slab, &file_path.as_str()).as_noun();
+
+        Self::wallet(
+            "sign-aeroe-tx",
+            &[draft_noun, index_noun, file_path_noun, entropy],
+            Operation::Poke,
+            &mut slab,
+        )
+    }
+
 
     /// Generates a master private key from a seed phrase.
     ///

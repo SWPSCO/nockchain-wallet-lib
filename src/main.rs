@@ -67,6 +67,7 @@ async fn main() -> Result<(), NockAppError> {
         | Commands::ImportKeys { .. }
         | Commands::ExportKeys
         | Commands::SignTx { .. }
+        | Commands::SignAeroeTx { .. }
         | Commands::MakeTx { .. }
         | Commands::GenMasterPrivkey { .. }
         | Commands::GenMasterPubkey { .. }
@@ -133,6 +134,7 @@ async fn main() -> Result<(), NockAppError> {
         Commands::ImportKeys { input } => Wallet::import_keys(input),
         Commands::ExportKeys => Wallet::export_keys(),
         Commands::SignTx { draft, index } => Wallet::sign_tx(draft, *index),
+        Commands::SignAeroeTx { draft, index, file_path } => Wallet::sign_aeroe_tx(draft, *index, file_path.clone()),
         Commands::GenMasterPrivkey { seedphrase } => Wallet::gen_master_privkey(seedphrase),
         Commands::GenMasterPubkey { master_privkey } => Wallet::gen_master_pubkey(master_privkey),
         Commands::Scan {
