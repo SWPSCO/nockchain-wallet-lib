@@ -163,7 +163,7 @@ pub enum Commands {
         fee: u64,
         /// Location to write the draft file
         #[arg(long)]
-        path: String,
+        file_path: String,
     },
 
     /// Create a transaction from a draft file
@@ -719,7 +719,7 @@ impl Wallet {
         recipients: String,
         gifts: String,
         fee: u64,
-        path: String,
+        file_path: String,
     ) -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
 
@@ -824,11 +824,11 @@ impl Wallet {
 
         let fee_noun = D(fee);
 
-        let path_noun = make_tas(&mut slab, &path.as_str()).as_noun();
+        let file_path_noun = make_tas(&mut slab, &file_path.as_str()).as_noun();
 
         Self::wallet(
             "aeroe-spend",
-            &[names_noun, recipients_noun, gifts_noun, fee_noun, path_noun],
+            &[names_noun, recipients_noun, gifts_noun, fee_noun, file_path_noun],
             Operation::Poke,
             &mut slab,
         )
