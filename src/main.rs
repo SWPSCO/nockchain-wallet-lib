@@ -80,7 +80,7 @@ async fn main() -> Result<(), NockAppError> {
         | Commands::SimpleSpend { .. }
         | Commands::AeroeSpend { .. }
         // Lib specific Peek commands
-        | Commands::PeekBalance
+        | Commands::PeekBalance { .. }
         | Commands::PeekSeedphrase
         | Commands::PeekMasterPubkey
         | Commands::PeekState
@@ -103,7 +103,7 @@ async fn main() -> Result<(), NockAppError> {
     // Generate the command noun and operation
     let poke = match &cli.command {
         // Peek Commands
-        Commands::PeekBalance => return do_peek(Wallet::peek_balance()?.0, wallet_instance.app).await,
+        Commands::PeekBalance { pubkey } => return do_peek(Wallet::peek_balance(pubkey.clone())?.0, wallet_instance.app).await,
         Commands::PeekSeedphrase => return do_peek(Wallet::peek_seedphrase()?.0, wallet_instance.app).await,
         Commands::PeekMasterPubkey => return do_peek(Wallet::peek_master_pubkey()?.0, wallet_instance.app).await,
         Commands::PeekState => return do_peek(Wallet::peek_state()?.0, wallet_instance.app).await,

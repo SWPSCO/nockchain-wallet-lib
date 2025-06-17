@@ -205,7 +205,11 @@ pub enum Commands {
     ListPubkeys,
 
     /// Get the balance of the current wallet
-    PeekBalance,
+    PeekBalance {
+        /// Public key to get balance for
+        #[arg(short, long)]
+        pubkey: String,
+    },
 
     /// Show the seed phrase for the current master key
     ShowSeedphrase,
@@ -262,7 +266,7 @@ impl Commands {
             Commands::ShowMasterPubkey => "show-master-pubkey",
             Commands::ShowMasterPrivkey => "show-master-privkey",
             // Peeks
-            Commands::PeekBalance => "peek-balance",
+            Commands::PeekBalance { .. } => "peek-balance",
             Commands::PeekSeedphrase => "peek-seedphrase",
             Commands::PeekMasterPubkey => "peek-master-pubkey",
             Commands::PeekState => "peek-state",
@@ -386,9 +390,10 @@ impl Wallet {
     }
 
     // Peeks
-    pub fn peek_balance() -> CommandNoun<NounSlab> {
+    pub fn peek_balance(pubkey: String) -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
-        Self::wallet("balance", &[], Operation::Peek, &mut slab)
+        let pubkey_noun = make_tas(&mut slab, &pubkey).as_noun();
+        Self::wallet("balance", &[pubkey_noun], Operation::Peek, &mut slab)
     }
     pub fn peek_seedphrase() -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
