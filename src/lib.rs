@@ -236,7 +236,11 @@ pub enum Commands {
     PeekPubkeys,
 
     /// Get the notes
-    PeekNotes,
+    PeekNotes {
+        /// Public key to filter notes
+        #[arg(short, long)]
+        pubkey: String,
+    },
 }
 
 impl Commands {
@@ -272,7 +276,7 @@ impl Commands {
             Commands::PeekState => "peek-state",
             Commands::PeekReceiveAddress => "peek-receive-address",
             Commands::PeekPubkeys => "peek-pubkeys",
-            Commands::PeekNotes => "peek-notes"
+            Commands::PeekNotes { .. } => "peek-notes"
         }
     }
 }
@@ -415,9 +419,10 @@ impl Wallet {
         let mut slab = NounSlab::new();
         Self::wallet("pubkeys", &[], Operation::Peek, &mut slab)
     }
-    pub fn peek_notes() -> CommandNoun<NounSlab> {
+    pub fn peek_notes(pubkey: &str) -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
-        Self::wallet("notes", &[], Operation::Peek, &mut slab)
+        let pubkey_noun = make_tas(&mut slab, pubkey).as_noun();
+        Self::wallet("notes", &[pubkey_noun, SIG], Operation::Peek, &mut slab)
     }
 
     // Derives a child key from current master key.

@@ -86,7 +86,7 @@ async fn main() -> Result<(), NockAppError> {
         | Commands::PeekState
         | Commands::PeekReceiveAddress
         | Commands::PeekPubkeys
-        | Commands::PeekNotes => false,
+        | Commands::PeekNotes { .. } => false,
 
         // All other commands DO need sync
         _ => true,
@@ -109,7 +109,7 @@ async fn main() -> Result<(), NockAppError> {
         Commands::PeekState => return do_peek(Wallet::peek_state()?.0, wallet_instance.app).await,
         Commands::PeekReceiveAddress => return do_peek(Wallet::peek_receive_address()?.0, wallet_instance.app).await,
         Commands::PeekPubkeys => return do_peek(Wallet::peek_pubkeys()?.0, wallet_instance.app).await,
-        Commands::PeekNotes => return do_peek(Wallet::peek_notes()?.0, wallet_instance.app).await,
+        Commands::PeekNotes { pubkey } => return do_peek(Wallet::peek_notes(&pubkey)?.0, wallet_instance.app).await,
         Commands::UpdateState => Wallet::update_state(),
         Commands::Keygen => {
             let mut entropy = [0u8; 32];
