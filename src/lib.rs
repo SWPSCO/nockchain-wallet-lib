@@ -393,7 +393,8 @@ impl Wallet {
     pub fn peek_balance(pubkey: String) -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
         let pubkey_noun = make_tas(&mut slab, &pubkey).as_noun();
-        Self::wallet("balance", &[pubkey_noun], Operation::Peek, &mut slab)
+        let full = T(slab, &[pubkey_noun, D(0)]);
+        Self::wallet("balance", &[full], Operation::Peek, &mut slab)
     }
     pub fn peek_seedphrase() -> CommandNoun<NounSlab> {
         let mut slab = NounSlab::new();
